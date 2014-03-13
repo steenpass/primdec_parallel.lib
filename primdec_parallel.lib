@@ -54,7 +54,7 @@ proc minSat_parallel(ideal inew, ideal h)
   f=1;
   intvec op = option(get);
   option(returnSB);
-  while(specialIdealsEqual(iold,quotM[1])==0)
+  while(Primdec::specialIdealsEqual(iold,quotM[1])==0)
   {
     if(k>0)
     {
@@ -82,7 +82,7 @@ static proc quotMin_parallel(list tsil)
 
   ideal star=quotient(laedi,f);
 
-  if(specialIdealsEqual(star,laedi))
+  if(Primdec::specialIdealsEqual(star,laedi))
   {
     l=star,fac,f;
     return(l);
@@ -110,7 +110,7 @@ static proc quotMin_parallel(list tsil)
       }
       verg=quotient(laedi,g);
 
-      if(specialIdealsEqual(verg,star)==1)
+      if(Primdec::specialIdealsEqual(verg,star)==1)
       {
         f=g;
         fac[i]=0;
@@ -218,7 +218,7 @@ EXAMPLE: example decomp_parallel; shows an example
   if(size(i)==0)
   {
     primary=ideal(0),ideal(0);
-    if (abspri) { return(prepare_absprimdec(primary));}
+    if (abspri) { return(Primdec::prepare_absprimdec(primary));}
     return(primary);
   }
 
@@ -226,7 +226,7 @@ EXAMPLE: example decomp_parallel; shows an example
   //pass to the lexicographical ordering and compute a standardbasis
   //----------------------------------------------------------------
 
-  int lp=islp();
+  int lp=Primdec::islp();
 
   execute("ring gnir = ("+charstr(basering)+"),("+varstr(basering)+"),(C,lp);");
   op=option(get);
@@ -285,7 +285,7 @@ EXAMPLE: example decomp_parallel; shows an example
       setring @P;
       primary[1]=i;
       primary[2]=i;
-      if (abspri) { return(prepare_absprimdec(primary));}
+      if (abspri) { return(Primdec::prepare_absprimdec(primary));}
       return(primary);
     }
     if(size(fried)>0)
@@ -334,7 +334,7 @@ EXAMPLE: example decomp_parallel; shows an example
       }
       setring @P;
       primary=imap(gnir,pr);
-      if (abspri) { return(prepare_absprimdec(primary));}
+      if (abspri) { return(Primdec::prepare_absprimdec(primary));}
       return(primary);
     }
   }
@@ -346,7 +346,7 @@ EXAMPLE: example decomp_parallel; shows an example
   {
     setring @P;
     primary=ideal(1),ideal(1);
-    if (abspri) { return(prepare_absprimdec(primary));}
+    if (abspri) { return(Primdec::prepare_absprimdec(primary));}
     return(primary);
   }
 
@@ -356,7 +356,7 @@ EXAMPLE: example decomp_parallel; shows an example
 
   if(nvars(basering)==1)
   {
-    list fac=factor(@j[1]);
+    list fac=Primdec::factor(@j[1]);
     list gprimary;
     for(@k=1;@k<=size(fac[1]);@k++)
     {
@@ -375,7 +375,7 @@ EXAMPLE: example decomp_parallel; shows an example
     primary=fetch(gnir,gprimary);
 
 //HIER
-    if (abspri) { return(prepare_absprimdec(primary));}
+    if (abspri) { return(Primdec::prepare_absprimdec(primary));}
     return(primary);
   }
 
@@ -393,7 +393,7 @@ EXAMPLE: example decomp_parallel; shows an example
 
     if(size(ser)>0)
     {
-      primary=cleanPrimary(primary);
+      primary=Primdec::cleanPrimary(primary);
     }
 //HIER
     if(abspri)
@@ -452,7 +452,7 @@ EXAMPLE: example decomp_parallel; shows an example
   //------------------------------------------------------------------
   if(@wr!=1)
   {
-    allindep=independSet(@j);
+    allindep=Primdec::independSet(@j);
     for(@m=1;@m<=size(allindep);@m++)
     {
       if(allindep[@m][3]==jdim)
@@ -469,7 +469,7 @@ EXAMPLE: example decomp_parallel; shows an example
   }
   else
   {
-    indep=maxIndependSet(@j);
+    indep=Primdec::maxIndependSet(@j);
   }
 
   ideal jkeep=@j;
@@ -571,7 +571,7 @@ EXAMPLE: example decomp_parallel; shows an example
     //map phi:K[var(1),...,var(nva)] --->K(var(nnpr+1),..,var(nva))[..rest..]
     //------------------------------------------------------------------------
 
-    quotring=prepareQuotientring(nvars(basering)-indep[@m][3]);
+    quotring=Primdec::prepareQuotientring(nvars(basering)-indep[@m][3]);
 
     //---------------------------------------------------------------------
     //we pass to the quotientring   K(var(nnp+1),..,var(nva))[..the rest..]
@@ -581,7 +581,7 @@ EXAMPLE: example decomp_parallel; shows an example
     execute(quotring);
 
     ideal @jj=imap(gnir1,@jj);
-    @vv=clearSBNeu(@jj,fett);  //!! vorn vereinbaren
+    @vv=Primdec::clearSBNeu(@jj,fett);  //!! vorn vereinbaren
     setring gnir1;
     @k=size(@j);
     for (lauf=1;lauf<=@k;lauf++)
@@ -709,18 +709,18 @@ EXAMPLE: example decomp_parallel; shows an example
     //mentioned above is really computed
     for(@n=@n3 div 2+1;@n<=@n2 div 2;@n++)
     {
-      if(specialIdealsEqual(quprimary[2*@n-1],quprimary[2*@n]))
+      if(Primdec::specialIdealsEqual(quprimary[2*@n-1],quprimary[2*@n]))
       {
-        quprimary[2*@n-1]=sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
+        quprimary[2*@n-1]=Primdec::sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
         quprimary[2*@n]=quprimary[2*@n-1];
       }
       else
       {
         if(@wr==0)
         {
-          quprimary[2*@n-1]=sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
+          quprimary[2*@n-1]=Primdec::sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
         }
-        quprimary[2*@n]=sat2(quprimary[2*@n],lnew[2*@n])[1];
+        quprimary[2*@n]=Primdec::sat2(quprimary[2*@n],lnew[2*@n])[1];
       }
     }
 
@@ -884,7 +884,7 @@ EXAMPLE: example decomp_parallel; shows an example
         //--->K(var(nnpr+1),..,var(nva))[..the rest..]
         //------------------------------------------------------------------
 
-        quotring=prepareQuotientring(nvars(basering)-restindep[@m][3]);
+        quotring=Primdec::prepareQuotientring(nvars(basering)-restindep[@m][3]);
 
         //------------------------------------------------------------------
         //we pass to the quotientring  K(var(nnp+1),..,var(nva))[..rest..]
@@ -900,7 +900,7 @@ EXAMPLE: example decomp_parallel; shows an example
 
         //j is a standardbasis in the quotientring but usually not minimal
         //here it becomes minimal
-        @j=clearSB(@j,fett);
+        @j=Primdec::clearSB(@j,fett);
         attrib(@j,"isSB",1);
 
         //we need later ggt(h[1],...)=gh for saturation
@@ -1001,18 +1001,19 @@ EXAMPLE: example decomp_parallel; shows an example
 
         for(@n=@n3 div 2+1;@n<=@n2 div 2;@n++)
         {
-          if(specialIdealsEqual(quprimary[2*@n-1],quprimary[2*@n]))
+          if(Primdec::specialIdealsEqual(quprimary[2*@n-1],quprimary[2*@n]))
           {
-            quprimary[2*@n-1]=sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
+            quprimary[2*@n-1]=Primdec::sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
             quprimary[2*@n]=quprimary[2*@n-1];
           }
           else
           {
             if(@wr==0)
             {
-              quprimary[2*@n-1]=sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
+              quprimary[2*@n-1]
+                  =Primdec::sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
             }
-            quprimary[2*@n]=sat2(quprimary[2*@n],lnew[2*@n])[1];
+            quprimary[2*@n]=Primdec::sat2(quprimary[2*@n],lnew[2*@n])[1];
           }
         }
         if(@n2>=@n3+2)
@@ -1095,10 +1096,10 @@ EXAMPLE: example decomp_parallel; shows an example
   primary=imap(gnir,quprimary);
   if(!abspri)
   {
-    primary=cleanPrimary(primary);
+    primary=Primdec::cleanPrimary(primary);
   }
   if (abspri && (typeof(primary[1][1])=="poly"))
-  { return(prepare_absprimdec(primary));}
+  { return(Primdec::prepare_absprimdec(primary));}
   return(primary);
 }
 example
@@ -1168,7 +1169,7 @@ EXAMPLE: example primdecGTZ_parallel; shows an example
       "// Not implemented yet for algebraic extensions.Simulate the ring extension by adding the minpoly to the ideal"
       );
    }
-  return(convList(decomp_parallel(i)));
+  return(Primdec::convList(decomp_parallel(i)));
 }
 example
 { "EXAMPLE:";  echo = 2;
