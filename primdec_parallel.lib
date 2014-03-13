@@ -9,7 +9,7 @@ AUTHOR:   Andreas Steenpass, e-mail: steenpass@mathematik.uni-kl.de
 OVERVIEW:
 
 PROCEDURES:
- primdecGTZ(I);    primary decomposition via Gianni, Trager, Zacharias
+ primdecGTZ_parallel(I);    primary decomposition via Gianni, Trager, Zacharias
 ";
 
 LIB "general.lib";
@@ -21,8 +21,9 @@ LIB "matrix.lib";
 LIB "triang.lib";
 LIB "absfact.lib";
 LIB "ring.lib";
+LIB "primdec.lib";
 
-proc minSat(ideal inew, ideal h)
+proc minSat_parallel(ideal inew, ideal h)
 {
   int i,k;
   poly f=1;
@@ -60,7 +61,7 @@ proc minSat(ideal inew, ideal h)
       f=f*quotM[3];
     }
     iold=quotM[1];
-    quotM=quotMin(quotM);
+    quotM=quotMin_parallel(quotM);
     k++;
   }
   option(set,op);
@@ -68,7 +69,7 @@ proc minSat(ideal inew, ideal h)
   return(l);
 }
 
-static proc quotMin(list tsil)
+static proc quotMin_parallel(list tsil)
 {
   int i,j,k,action;
   ideal verg;
@@ -126,16 +127,16 @@ static proc quotMin(list tsil)
   return(l);
 }
 
-static proc decomp(ideal i,list #)
-"USAGE:  decomp(i); i ideal  (for primary decomposition)   (resp.
-         decomp(i,1);        (for the associated primes of dimension of i) )
-         decomp(i,2);        (for the minimal associated primes) )
-         decomp(i,3);        (for the absolute primary decomposition) )
+static proc decomp_parallel(ideal i,list #)
+"USAGE:  decomp_parallel(i); i ideal  (for primary decomposition)   (resp.
+         decomp_parallel(i,1);  (for the associated primes of dimension of i) )
+         decomp_parallel(i,2);  (for the minimal associated primes) )
+         decomp_parallel(i,3);  (for the absolute primary decomposition) )
 RETURN:  list = list of primary ideals and their associated primes
          (at even positions in the list)
          (resp. a list of the minimal associated primes)
 NOTE:    Algorithm of Gianni/Trager/Zacharias
-EXAMPLE: example decomp; shows an example
+EXAMPLE: example decomp_parallel; shows an example
 "
 {
   intvec op,@vv;
@@ -323,7 +324,7 @@ EXAMPLE: example decomp; shows an example
       ideal @j= @kappa(@j);
       @j=std(@j);
 
-      list pr=decomp(@j);
+      list pr=decomp_parallel(@j);
       setring gnir;
       list pr=imap(@deirf,pr);
       for(@k=1;@k<=size(pr);@k++)
@@ -733,7 +734,7 @@ EXAMPLE: example decomp; shows an example
       if(@wr!=1)
       {
         if(defined(@LL)){kill @LL;}
-        list @LL=minSat(jwork,@h);
+        list @LL=minSat_parallel(jwork,@h);
         @Ptest=intersect(@Ptest,@LL[1]);
         @q=@LL[2];
       }
@@ -1056,11 +1057,11 @@ EXAMPLE: example decomp; shows an example
       {
         if(@wr>0)
         {
-          htprimary=decomp(@j,@wr,peek,ser);
+          htprimary=decomp_parallle(@j,@wr,peek,ser);
         }
         else
         {
-          htprimary=decomp(@j,peek,ser);
+          htprimary=decomp_parallel(@j,peek,ser);
         }
         // here we collect now both results primary(sat(j,gh))
         // and primary(j,gh^n)
@@ -1106,13 +1107,13 @@ example
    poly  p = z2+1;
    poly  q = z4+2;
    ideal i = p^2*q^3,(y-z3)^3,(x-yz+z4)^4;
-   list pr= decomp(i);
+   list pr= decomp_parallel(i);
    pr;
    testPrimary( pr, i);
 }
 
-proc primdecGTZ(ideal i, list #)
-"USAGE:   primdecGTZ(i); i ideal
+proc primdecGTZ_parallel(ideal i, list #)
+"USAGE:   primdecGTZ_parallel(i); i ideal
 RETURN:  a list pr of primary ideals and their associated primes:
 @format
    pr[i][1]   the i-th primary component,
@@ -1126,7 +1127,7 @@ NOTE:    - Algorithm of Gianni/Trager/Zacharias.
          - For local and mixed orderings, the decomposition in the
            corresponding global ring is returned if the string 'global'
            is specified as second argument
-EXAMPLE: example primdecGTZ; shows an example
+EXAMPLE: example primdecGTZ_parallel; shows an example
 "
 {
    if(size(#)>0)
@@ -1142,7 +1143,7 @@ EXAMPLE: example primdecGTZ; shows an example
       setring s;
       ideal i=imap(r,i);
 // decompose and go back
-      list li=primdecGTZ(i);
+      list li=primdecGTZ_parallel(i);
       setring r;
       def li=imap(s,li);
 // clean up
@@ -1167,7 +1168,7 @@ EXAMPLE: example primdecGTZ; shows an example
       "// Not implemented yet for algebraic extensions.Simulate the ring extension by adding the minpoly to the ideal"
       );
    }
-  return(convList(decomp(i)));
+  return(convList(decomp_parallel(i)));
 }
 example
 { "EXAMPLE:";  echo = 2;
@@ -1175,6 +1176,6 @@ example
    poly  p = z2+1;
    poly  q = z3+2;
    ideal i = p*q^2,y-z2;
-   list pr = primdecGTZ(i);
+   list pr = primdecGTZ_parallel(i);
    pr;
 }
