@@ -2,26 +2,11 @@
 version="version primdec.lib 3-1-7-0 Jan_2014 ";
 category="Commutative Algebra";
 info="
-LIBRARY: primdec.lib   Primary Decomposition and Radical of Ideals
-AUTHORS:  Gerhard Pfister, pfister@mathematik.uni-kl.de (GTZ)@*
-          Wolfram Decker, decker@math.uni-sb.de         (SY)@*
-          Hans Schoenemann, hannes@mathematik.uni-kl.de (SY)@*
-          Santiago Laplagne, slaplagn@dm.uba.ar         (GTZ)
+LIBRARY:  primdec_parallel.lib   Parallel primary decomposition of ideals
+
+AUTHOR:   Andreas Steenpass, e-mail: steenpass@mathematik.uni-kl.de
 
 OVERVIEW:
-    Algorithms for primary decomposition based on the ideas of
-    Gianni, Trager and Zacharias (implementation by Gerhard Pfister),
-    respectively based on the ideas of Shimoyama and Yokoyama (implementation
-    by Wolfram Decker and Hans Schoenemann).@*
-    The procedures are implemented to be used in characteristic 0.@*
-    They also work in positive characteristic >> 0.@*
-    In small characteristic and for algebraic extensions, primdecGTZ
-    may not terminate.@*
-    Algorithms for the computation of the radical based on the ideas of
-    Krick, Logar, Laplagne and Kemper (implementation by Gerhard Pfister and Santiago Laplagne).
-    They work in any characteristic.@*
-    Baserings must have a global ordering and no quotient ideal.
-
 
 PROCEDURES:
  primdecGTZ(I);    primary decomposition via Gianni, Trager, Zacharias
