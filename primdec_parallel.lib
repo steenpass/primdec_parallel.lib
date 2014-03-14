@@ -22,7 +22,7 @@ LIB "triang.lib";
 LIB "ring.lib";
 LIB "primdec.lib";
 
-proc minSat_parallel(ideal inew, ideal h)
+static proc minSat_parallel(ideal inew, ideal h)
 {
   int i,k;
   poly f=1;
@@ -878,6 +878,10 @@ NOTE:    - Parallel version of the algorithm of Gianni/Trager/Zacharias.
 EXAMPLE: example primdecGTZ_parallel; shows an example
 "
 {
+   if(char(basering) != 0)
+   {
+      ERROR("The characteristic must be zero.");
+   }
    if(size(#)>0)
    {
       int keep_comp=1;
