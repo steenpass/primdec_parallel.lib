@@ -1,5 +1,5 @@
 ////////////////////////////////////////////////////////////////////////////
-version="version primdec.lib 3-1-7-0 Jan_2014 ";
+version="version primdec_parallel.lib 3-1-7-0 Jan_2014 ";
 category="Commutative Algebra";
 info="
 LIBRARY:  primdec_parallel.lib   Parallel primary decomposition of ideals
