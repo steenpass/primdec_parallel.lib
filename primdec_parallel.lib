@@ -19,7 +19,6 @@ LIB "random.lib";
 LIB "inout.lib";
 LIB "matrix.lib";
 LIB "triang.lib";
-LIB "absfact.lib";
 LIB "ring.lib";
 LIB "primdec.lib";
 
@@ -127,14 +126,10 @@ static proc quotMin_parallel(list tsil)
   return(l);
 }
 
-static proc decomp_parallel(ideal i,list #)
-"USAGE:  decomp_parallel(i); i ideal  (for primary decomposition)   (resp.
-         decomp_parallel(i,1);  (for the associated primes of dimension of i) )
-         decomp_parallel(i,2);  (for the minimal associated primes) )
-         decomp_parallel(i,3);  (for the absolute primary decomposition) )
+static proc decomp_parallel(ideal i, list #)
+"USAGE:  decomp_parallel(i); i ideal
 RETURN:  list = list of primary ideals and their associated primes
          (at even positions in the list)
-         (resp. a list of the minimal associated primes)
 NOTE:    Algorithm of Gianni/Trager/Zacharias
 EXAMPLE: example decomp_parallel; shows an example
 "
@@ -143,7 +138,7 @@ EXAMPLE: example decomp_parallel; shows an example
   def  @P = basering;
   list primary,indep,ltras;
   intvec @vh,isat,@w;
-  int @wr,@k,@n,@m,@n1,@n2,@n3,homo,seri,keepdi,abspri,ab,nn;
+  int @k,@n,@m,@n1,@n2,@n3,homo,seri,keepdi,ab,nn;
   ideal peek=i;
   ideal ser,tras;
   int isS=(attrib(i,"isSB")==1);
@@ -151,34 +146,15 @@ EXAMPLE: example decomp_parallel; shows an example
 
   if(size(#)>0)
   {
-    if((#[1]==1)||(#[1]==2)||(#[1]==3))
-    {
-      @wr=#[1];
-      if(@wr==3){abspri=1;@wr=0;}
-      if(size(#)>1)
-      {
-        seri=1;
-        peek=#[2];
-        ser=#[3];
-      }
-    }
-    else
-    {
-      seri=1;
-      peek=#[1];
-      ser=#[2];
-    }
-  }
-  if(abspri)
-  {
-    list absprimary,abskeep,absprimarytmp,abskeeptmp;
+    seri=1;
+    peek=#[1];
+    ser=#[2];
   }
   homo=homog(i);
   if(homo==1)
   {
     if(attrib(i,"isSB")!=1)
     {
-      //ltras=mstd(i);
       tras=groebner(i);
       ltras=tras,tras;
       attrib(ltras[1],"isSB",1);
@@ -190,17 +166,10 @@ EXAMPLE: example decomp_parallel; shows an example
     }
     tras=ltras[1];
     attrib(tras,"isSB",1);
-    if((dim(tras)==0) && (!abspri))
+    if((dim(tras)==0))
     {
       primary[1]=ltras[2];
       primary[2]=maxideal(1);
-      if(@wr>0)
-      {
-        list l;
-        l[1]=maxideal(1);
-        l[2]=maxideal(1);
-        return(l);
-      }
       return(primary);
     }
     for(@n=1;@n<=nvars(basering);@n++)
@@ -218,7 +187,6 @@ EXAMPLE: example decomp_parallel; shows an example
   if(size(i)==0)
   {
     primary=ideal(0),ideal(0);
-    if (abspri) { return(Primdec::prepare_absprimdec(primary));}
     return(primary);
   }
 
@@ -268,7 +236,7 @@ EXAMPLE: example decomp_parallel; shows an example
   {
     ideal peek=@j;
   }
-  if((size(ser)==0)&&(!abspri))
+  if((size(ser)==0))
   {
     ideal fried;
     @n=size(@j);
@@ -285,7 +253,6 @@ EXAMPLE: example decomp_parallel; shows an example
       setring @P;
       primary[1]=i;
       primary[2]=i;
-      if (abspri) { return(Primdec::prepare_absprimdec(primary));}
       return(primary);
     }
     if(size(fried)>0)
@@ -334,7 +301,6 @@ EXAMPLE: example decomp_parallel; shows an example
       }
       setring @P;
       primary=imap(gnir,pr);
-      if (abspri) { return(Primdec::prepare_absprimdec(primary));}
       return(primary);
     }
   }
@@ -346,7 +312,6 @@ EXAMPLE: example decomp_parallel; shows an example
   {
     setring @P;
     primary=ideal(1),ideal(1);
-    if (abspri) { return(Primdec::prepare_absprimdec(primary));}
     return(primary);
   }
 
@@ -360,22 +325,11 @@ EXAMPLE: example decomp_parallel; shows an example
     list gprimary;
     for(@k=1;@k<=size(fac[1]);@k++)
     {
-      if(@wr==0)
-      {
-        gprimary[2*@k-1]=ideal(fac[1][@k]^fac[2][@k]);
-        gprimary[2*@k]=ideal(fac[1][@k]);
-      }
-      else
-      {
-        gprimary[2*@k-1]=ideal(fac[1][@k]);
-        gprimary[2*@k]=ideal(fac[1][@k]);
-      }
+      gprimary[2*@k-1]=ideal(fac[1][@k]^fac[2][@k]);
+      gprimary[2*@k]=ideal(fac[1][@k]);
     }
     setring @P;
     primary=fetch(gnir,gprimary);
-
-//HIER
-    if (abspri) { return(Primdec::prepare_absprimdec(primary));}
     return(primary);
   }
 
@@ -386,7 +340,7 @@ EXAMPLE: example decomp_parallel; shows an example
   {
     op=option(get);
     option(redSB);
-    list gprimary= zero_decomp(@j,ser,@wr);
+    list gprimary= zero_decomp(@j,ser,0);
 
     setring @P;
     primary=fetch(gnir,gprimary);
@@ -394,44 +348,6 @@ EXAMPLE: example decomp_parallel; shows an example
     if(size(ser)>0)
     {
       primary=Primdec::cleanPrimary(primary);
-    }
-//HIER
-    if(abspri)
-    {
-      setring gnir;
-      list primary=imap(@P,primary);
-      list resu,tempo;
-      string absotto;
-      map sigma,invsigma;
-      ideal II,jmap;
-      nn=nvars(basering);
-      for(ab=1;ab<=size(primary) div 2;ab++)
-      {
-        II=primary[2*ab];
-        attrib(II,"isSB",1);
-        if(deg(II[1])==vdim(II))
-        {
-          absotto= absFactorize(primary[2*ab][1],77);
-          tempo=
-            primary[2*ab-1],primary[2*ab],absotto,string(var(nvars(basering)));
-        }
-        else
-        {
-          invsigma=basering,maxideal(1);
-          jmap=randomLast(50);
-          sigma=basering,jmap;
-          jmap[nn]=2*var(nn)-jmap[nn];
-          invsigma=basering,jmap;
-          II=groebner(sigma(II));
-          absotto = absFactorize(II[1],77);
-          II=var(nn);
-          tempo= primary[2*ab-1],primary[2*ab],absotto,string(invsigma(II));
-        }
-        resu[ab]=tempo;
-      }
-      primary=resu;
-      setring @P;
-      primary=imap(gnir,primary);
     }
     option(set,op);
     return(primary);
@@ -450,26 +366,19 @@ EXAMPLE: example decomp_parallel; shows an example
   //j intersected with K[var(indep[3]+1),...,var(nvar] is zero,
   //indep[1] is the new varstring and indep[2] the string for block-ordering
   //------------------------------------------------------------------
-  if(@wr!=1)
+  allindep=Primdec::independSet(@j);
+  for(@m=1;@m<=size(allindep);@m++)
   {
-    allindep=Primdec::independSet(@j);
-    for(@m=1;@m<=size(allindep);@m++)
+    if(allindep[@m][3]==jdim)
     {
-      if(allindep[@m][3]==jdim)
-      {
-        di++;
-        indep[di]=allindep[@m];
-      }
-      else
-      {
-        lauf++;
-        restindep[lauf]=allindep[@m];
-      }
+      di++;
+      indep[di]=allindep[@m];
     }
-  }
-  else
-  {
-    indep=Primdec::maxIndependSet(@j);
+    else
+    {
+      lauf++;
+      restindep[lauf]=allindep[@m];
+    }
   }
 
   ideal jkeep=@j;
@@ -617,33 +526,7 @@ EXAMPLE: example decomp_parallel; shows an example
       op=option(get);
       option(redSB);
 
-      list uprimary= zero_decomp(@j,ser,@wr);
-//HIER
-      if(abspri)
-      {
-        ideal II;
-        ideal jmap;
-        map sigma;
-        nn=nvars(basering);
-        map invsigma=basering,maxideal(1);
-        for(ab=1;ab<=size(uprimary) div 2;ab++)
-        {
-          II=uprimary[2*ab];
-          attrib(II,"isSB",1);
-          if(deg(II[1])!=vdim(II))
-          {
-            jmap=randomLast(50);
-            sigma=basering,jmap;
-            jmap[nn]=2*var(nn)-jmap[nn];
-            invsigma=basering,jmap;
-            II=groebner(sigma(II));
-          }
-          absprimarytmp[ab]= absFactorize(II[1],77);
-          II=var(nn);
-          abskeeptmp[ab]=string(invsigma(II));
-          invsigma=basering,maxideal(1);
-        }
-      }
+      list uprimary= zero_decomp(@j,ser,0);
       option(set,op);
     }
     else
@@ -698,11 +581,6 @@ EXAMPLE: example decomp_parallel; shows an example
         @n2++;
         lnew[@n2]=lsau[2*@n1];
         quprimary[@n2]=collectprimary[2*@n1];
-        if(abspri)
-        {
-          absprimary[@n2 div 2]=absprimarytmp[@n1];
-          abskeep[@n2 div 2]=abskeeptmp[@n1];
-        }
       }
     }
     //here the intersection with the polynomialring
@@ -716,10 +594,7 @@ EXAMPLE: example decomp_parallel; shows an example
       }
       else
       {
-        if(@wr==0)
-        {
-          quprimary[2*@n-1]=Primdec::sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
-        }
+        quprimary[2*@n-1]=Primdec::sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
         quprimary[2*@n]=Primdec::sat2(quprimary[2*@n],lnew[2*@n])[1];
       }
     }
@@ -731,30 +606,10 @@ EXAMPLE: example decomp_parallel; shows an example
       //---------------------------------------------------------------
       setring @Phelp;
       @h=imap(gnir,@h);
-      if(@wr!=1)
-      {
-        if(defined(@LL)){kill @LL;}
-        list @LL=minSat_parallel(jwork,@h);
-        @Ptest=intersect(@Ptest,@LL[1]);
-        @q=@LL[2];
-      }
-      else
-      {
-        fac=ideal(0);
-        for(lauf=1;lauf<=ncols(@h);lauf++)
-        {
-          if(deg(@h[lauf])>0)
-          {
-            fac=fac+factorize(@h[lauf],1);
-          }
-        }
-        fac=simplify(fac,6);
-        @q=1;
-        for(lauf=1;lauf<=size(fac);lauf++)
-        {
-          @q=@q*fac[lauf];
-        }
-      }
+      if(defined(@LL)){kill @LL;}
+      list @LL=minSat_parallel(jwork,@h);
+      @Ptest=intersect(@Ptest,@LL[1]);
+      @q=@LL[2];
       jwork=std(jwork,@q);
       keepdi=dim(jwork);
       if(keepdi<di)
@@ -773,12 +628,6 @@ EXAMPLE: example decomp_parallel; shows an example
     }
   }
 
-  if((size(quprimary)==0)&&(@wr==1))
-  {
-    @j=ideal(1);
-    quprimary[1]=ideal(1);
-    quprimary[2]=ideal(1);
-  }
   if((size(quprimary)==0))
   {
     keepdi=di-1;
@@ -789,27 +638,14 @@ EXAMPLE: example decomp_parallel; shows an example
   //notice that j=sat(j,gh) intersected with (j,gh^n)
   //we finished with sat(j,gh) and have to start with (j,gh^n)
   //---------------------------------------------------------------
-  if((deg(@j[1])!=0)&&(@wr!=1))
+  if((deg(@j[1])!=0))
   {
     if(size(quprimary)>0)
     {
       setring @Phelp;
       ser=imap(gnir,ser);
       hquprimary=imap(gnir,quprimary);
-      if(@wr==0)
-      {
-        //HIER STATT DURCHSCHNITT SATURIEREN!
-        ideal htest=@Ptest;
-      }
-      else
-      {
-        ideal htest=hquprimary[2];
-
-        for (@n1=2;@n1<=size(hquprimary) div 2;@n1++)
-        {
-          htest=intersect(htest,hquprimary[2*@n1]);
-        }
-      }
+      ideal htest=@Ptest;
 
       if(size(ser)>0)
       {
@@ -826,8 +662,6 @@ EXAMPLE: example decomp_parallel; shows an example
     {
       for(@m=1;@m<=size(restindep);@m++)
       {
-        // if(restindep[@m][3]>=keepdi)
-        // {
         isat=0;
         @n2=0;
 
@@ -914,33 +748,7 @@ EXAMPLE: example decomp_parallel; shows an example
 
         op=option(get);
         option(redSB);
-        list uprimary= zero_decomp(@j,ser,@wr);
-//HIER
-        if(abspri)
-        {
-          ideal II;
-          ideal jmap;
-          map sigma;
-          nn=nvars(basering);
-          map invsigma=basering,maxideal(1);
-          for(ab=1;ab<=size(uprimary) div 2;ab++)
-          {
-            II=uprimary[2*ab];
-            attrib(II,"isSB",1);
-            if(deg(II[1])!=vdim(II))
-            {
-              jmap=randomLast(50);
-              sigma=basering,jmap;
-              jmap[nn]=2*var(nn)-jmap[nn];
-              invsigma=basering,jmap;
-              II=groebner(sigma(II));
-            }
-            absprimarytmp[ab]= absFactorize(II[1],77);
-            II=var(nn);
-            abskeeptmp[ab]=string(invsigma(II));
-            invsigma=basering,maxideal(1);
-          }
-        }
+        list uprimary= zero_decomp(@j,ser,0);
         option(set,op);
 
         //we need the intersection of the ideals in the list quprimary with
@@ -987,11 +795,6 @@ EXAMPLE: example decomp_parallel; shows an example
             @n2++;
             lnew[@n2]=lsau[2*@n1];
             quprimary[@n2]=collectprimary[2*@n1];
-            if(abspri)
-            {
-              absprimary[@n2 div 2]=absprimarytmp[@n1];
-              abskeep[@n2 div 2]=abskeeptmp[@n1];
-            }
           }
         }
 
@@ -1008,11 +811,7 @@ EXAMPLE: example decomp_parallel; shows an example
           }
           else
           {
-            if(@wr==0)
-            {
-              quprimary[2*@n-1]
-                  =Primdec::sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
-            }
+            quprimary[2*@n-1]=Primdec::sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
             quprimary[2*@n]=Primdec::sat2(quprimary[2*@n],lnew[2*@n])[1];
           }
         }
@@ -1023,47 +822,15 @@ EXAMPLE: example decomp_parallel; shows an example
           hquprimary=imap(gnir,quprimary);
           for(@n=@n3 div 2+1;@n<=@n2 div 2;@n++)
           {
-            if(@wr==0)
-            {
-              ser=intersect(ser,hquprimary[2*@n-1]);
-            }
-            else
-            {
-              ser=intersect(ser,hquprimary[2*@n]);
-            }
+            ser=intersect(ser,hquprimary[2*@n-1]);
           }
           setring gnir;
           ser=imap(@Phelp,ser);
         }
-
-         // }
-      }
-//HIER
-      if(abspri)
-      {
-        list resu,tempo;
-        for(ab=1;ab<=size(quprimary) div 2;ab++)
-        {
-          if (deg(quprimary[2*ab][1])!=0)
-          {
-            tempo=quprimary[2*ab-1],quprimary[2*ab],
-                         absprimary[ab],abskeep[ab];
-            resu[ab]=tempo;
-          }
-        }
-        quprimary=resu;
-        @wr=3;
       }
       if(size(reduce(ser,peek,1))!=0)
       {
-        if(@wr>0)
-        {
-          htprimary=decomp_parallle(@j,@wr,peek,ser);
-        }
-        else
-        {
-          htprimary=decomp_parallel(@j,peek,ser);
-        }
+        htprimary=decomp_parallel(@j,peek,ser);
         // here we collect now both results primary(sat(j,gh))
         // and primary(j,gh^n)
         @n=size(quprimary);
@@ -1074,32 +841,13 @@ EXAMPLE: example decomp_parallel; shows an example
       }
     }
   }
-  else
-  {
-    if(abspri)
-    {
-      list resu,tempo;
-      for(ab=1;ab<=size(quprimary) div 2;ab++)
-      {
-        tempo=quprimary[2*ab-1],quprimary[2*ab],
-                   absprimary[ab],abskeep[ab];
-        resu[ab]=tempo;
-      }
-      quprimary=resu;
-    }
-  }
   //---------------------------------------------------------------------------
   //back to the ring we started with
   //the final result: primary
   //---------------------------------------------------------------------------
   setring @P;
   primary=imap(gnir,quprimary);
-  if(!abspri)
-  {
-    primary=Primdec::cleanPrimary(primary);
-  }
-  if (abspri && (typeof(primary[1][1])=="poly"))
-  { return(Primdec::prepare_absprimdec(primary));}
+  primary=Primdec::cleanPrimary(primary);
   return(primary);
 }
 example
@@ -1120,9 +868,8 @@ RETURN:  a list pr of primary ideals and their associated primes:
    pr[i][1]   the i-th primary component,
    pr[i][2]   the i-th prime component.
 @end format
-NOTE:    - Algorithm of Gianni/Trager/Zacharias.
-         - Designed for characteristic 0, works also in char k > 0, if it
-           terminates (may result in an infinite loop in small characteristic!)
+NOTE:    - Parallel version of the algorithm of Gianni/Trager/Zacharias.
+         - Works in characteristic 0 only.
          - For local orderings, the result is considered in the localization
            of the polynomial ring, not in the power series ring
          - For local and mixed orderings, the decomposition in the
@@ -1165,9 +912,6 @@ EXAMPLE: example primdecGTZ_parallel; shows an example
    if(minpoly!=0)
    {
       return(algeDeco(i,0));
-      ERROR(
-      "// Not implemented yet for algebraic extensions.Simulate the ring extension by adding the minpoly to the ideal"
-      );
    }
   return(Primdec::convList(decomp_parallel(i)));
 }
