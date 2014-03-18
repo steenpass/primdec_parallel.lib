@@ -986,6 +986,7 @@ static proc zero_decomp_modular(ideal j, ideal ser)
   {
     res[2*i] = assprimes[i];
     res[2*i-1] = getResult(t(i))[1];
+    attrib(res[2*i-1], "isSB", 1);
     killTask(t(i));
   }
   if(size(ser) > 0)
