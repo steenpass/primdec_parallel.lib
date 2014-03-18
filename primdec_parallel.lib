@@ -589,18 +589,18 @@ EXAMPLE: example decomp_parallel; shows an example
     }
     //here the intersection with the polynomialring
     //mentioned above is really computed
-    for(@n=@n3 div 2+1;@n<=@n2 div 2;@n++)
+    for(@n = @n3 div 2+1; @n <= @n2 div 2; @n++)
     {
-      if(Primdec::specialIdealsEqual(quprimary[2*@n-1],quprimary[2*@n]))
-      {
-        quprimary[2*@n-1]=Primdec::sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
-        quprimary[2*@n]=quprimary[2*@n-1];
-      }
-      else
-      {
-        quprimary[2*@n-1]=Primdec::sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
-        quprimary[2*@n]=Primdec::sat2(quprimary[2*@n],lnew[2*@n])[1];
-      }
+      task t(@n) = "Primdec_parallel::sat_component",
+        list(quprimary[2*@n-1], quprimary[2*@n], lnew[2*@n-1], lnew[2*@n]);
+    }
+    startTasks(t((@n3 div 2+1)..(@n2 div 2)));
+    waitAllTasks(t((@n3 div 2+1)..(@n2 div 2)));
+    for(@n = @n3 div 2+1; @n <= @n2 div 2; @n++)
+    {
+      quprimary[2*@n-1] = getResult(t(@n))[1];
+      quprimary[2*@n] = getResult(t(@n))[2];
+      killTask(t(@n));
     }
 
     if(size(@h)>0)
@@ -807,18 +807,18 @@ EXAMPLE: example decomp_parallel; shows an example
         //here the intersection with the polynomialring
         //mentioned above is really computed
 
-        for(@n=@n3 div 2+1;@n<=@n2 div 2;@n++)
+        for(@n = @n3 div 2+1; @n <= @n2 div 2; @n++)
         {
-          if(Primdec::specialIdealsEqual(quprimary[2*@n-1],quprimary[2*@n]))
-          {
-            quprimary[2*@n-1]=Primdec::sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
-            quprimary[2*@n]=quprimary[2*@n-1];
-          }
-          else
-          {
-            quprimary[2*@n-1]=Primdec::sat2(quprimary[2*@n-1],lnew[2*@n-1])[1];
-            quprimary[2*@n]=Primdec::sat2(quprimary[2*@n],lnew[2*@n])[1];
-          }
+          task t(@n) = "Primdec_parallel::sat_component",
+            list(quprimary[2*@n-1], quprimary[2*@n], lnew[2*@n-1], lnew[2*@n]);
+        }
+        startTasks(t((@n3 div 2+1)..(@n2 div 2)));
+        waitAllTasks(t((@n3 div 2+1)..(@n2 div 2)));
+        for(@n = @n3 div 2+1; @n <= @n2 div 2; @n++)
+        {
+          quprimary[2*@n-1] = getResult(t(@n))[1];
+          quprimary[2*@n] = getResult(t(@n))[2];
+          killTask(t(@n));
         }
         if(@n2>=@n3+2)
         {
@@ -1008,4 +1008,19 @@ static proc separator(list assprimes, int i)
     }
   }
   return(m);
+}
+
+static proc sat_component(ideal q1, ideal q2, ideal l1, ideal l2)
+{
+  if(Primdec::specialIdealsEqual(q1, q2))
+  {
+    q1 = Primdec::sat2(q1, l1)[1];
+    q2 = q1;
+  }
+  else
+  {
+    q1 = Primdec::sat2(q1, l1)[1];
+    q2 = Primdec::sat2(q2, l2)[1];
+  }
+  return(list(q1, q2));
 }
