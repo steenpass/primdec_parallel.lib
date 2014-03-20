@@ -22,7 +22,7 @@ LIB "triang.lib";
 LIB "ring.lib";
 LIB "primdec.lib";
 LIB "modstd_tasks.lib";
-LIB "modsolve.lib";
+LIB "modquotient.lib";
 LIB "assprimeszerodim_tasks.lib";
 
 
@@ -83,7 +83,7 @@ static proc quotMin_parallel(list tsil)
   ideal fac=tsil[2];
   poly f=tsil[3];
 
-  ideal star=modQuotient(laedi,f,8,0);
+  ideal star = modQuotient(laedi, f, 0);
 
   if(Primdec::specialIdealsEqual(star,laedi))
   {
@@ -111,7 +111,7 @@ static proc quotMin_parallel(list tsil)
           g=g*fac[j];
         }
       }
-      verg=modQuotient(laedi,g,8,0);
+      verg = modQuotient(laedi, g, 0);
 
       if(Primdec::specialIdealsEqual(verg,star)==1)
       {
