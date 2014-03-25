@@ -159,7 +159,7 @@ EXAMPLE: example decomp_parallel; shows an example
   {
     if(attrib(i,"isSB")!=1)
     {
-      tras=groebner(i);
+      tras=modStd_tasks(i, 0);
       ltras=tras,tras;
       attrib(ltras[1],"isSB",1);
     }
@@ -293,7 +293,7 @@ EXAMPLE: example decomp_parallel; shows an example
       execute("ring @deirf=("+charstr(gnir)+"),("+newva+",lp;");
       execute("map @kappa=gnir,"+newma);
       ideal @j= @kappa(@j);
-      @j=std(@j);
+      @j=modStd_tasks(@j, 0);
 
       list pr=decomp_parallel(@j);
       setring gnir;
@@ -410,7 +410,7 @@ EXAMPLE: example decomp_parallel; shows an example
   }
   else
   {
-    ideal jwork=groebner(imap(gnir,@j));
+    ideal jwork=modStd_tasks(imap(gnir,@j), 0);
   }
   list hquprimary;
   poly @p,@q;
@@ -693,7 +693,7 @@ EXAMPLE: example decomp_parallel; shows an example
           }
           else
           {
-            ideal @j=groebner(phi(jkeep));
+            ideal @j=modStd_tasks(phi(jkeep), 0);
           }
           ideal ser=phi(ser);
           option(set,op);
