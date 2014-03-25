@@ -26,7 +26,12 @@ LIB "modquotient.lib";
 LIB "assprimeszerodim_tasks.lib";
 
 
-static proc minSat_parallel(ideal inew, ideal h)
+proc primdecGTZ_parallel(ideal i)
+{
+  return(primdecGTZ_wrapper(i, 0));
+}
+
+static proc minSat_parallel(ideal inew, ideal h, int exactness)
 {
   int i,k;
   poly f=1;
@@ -64,7 +69,7 @@ static proc minSat_parallel(ideal inew, ideal h)
       f=f*quotM[3];
     }
     iold=quotM[1];
-    quotM=quotMin_parallel(quotM);
+    quotM=quotMin_parallel(quotM, exactness);
     k++;
   }
   option(set,op);
@@ -72,7 +77,7 @@ static proc minSat_parallel(ideal inew, ideal h)
   return(l);
 }
 
-static proc quotMin_parallel(list tsil)
+static proc quotMin_parallel(list tsil, int exactness)
 {
   int i,j,k,action;
   ideal verg;
@@ -83,7 +88,7 @@ static proc quotMin_parallel(list tsil)
   ideal fac=tsil[2];
   poly f=tsil[3];
 
-  ideal star = modQuotient(laedi, f, 0);
+  ideal star = modQuotient(laedi, f, exactness);
 
   if(Primdec::specialIdealsEqual(star,laedi))
   {
@@ -111,7 +116,7 @@ static proc quotMin_parallel(list tsil)
           g=g*fac[j];
         }
       }
-      verg = modQuotient(laedi, g, 0);
+      verg = modQuotient(laedi, g, exactness);
 
       if(Primdec::specialIdealsEqual(verg,star)==1)
       {
@@ -130,11 +135,13 @@ static proc quotMin_parallel(list tsil)
   return(l);
 }
 
-static proc decomp_parallel(ideal i, list #)
-"USAGE:  decomp_parallel(i); i ideal
+static proc decomp_parallel(ideal i, int exactness, list #)
+"USAGE:  decomp_parallel(i, exactness); i ideal, exactness int
 RETURN:  list = list of primary ideals and their associated primes
          (at even positions in the list)
-NOTE:    Algorithm of Gianni/Trager/Zacharias
+NOTE:    Algorithm of Gianni/Trager/Zacharias. Returns a primary
+         decomposition of i for sure if exactness != 0, and with high
+         probability, otherwise.
 EXAMPLE: example decomp_parallel; shows an example
 "
 {
@@ -159,7 +166,7 @@ EXAMPLE: example decomp_parallel; shows an example
   {
     if(attrib(i,"isSB")!=1)
     {
-      tras=modStd_tasks(i, 0);
+      tras=modStd_tasks(i, exactness);
       ltras=tras,tras;
       attrib(ltras[1],"isSB",1);
     }
@@ -227,7 +234,7 @@ EXAMPLE: example decomp_parallel; shows an example
     }
     else
     {
-      ideal @j=modStd_tasks(fetch(@P,i), 0);
+      ideal @j=modStd_tasks(fetch(@P,i), exactness);
     }
   }
   option(set,op);
@@ -293,9 +300,9 @@ EXAMPLE: example decomp_parallel; shows an example
       execute("ring @deirf=("+charstr(gnir)+"),("+newva+",lp;");
       execute("map @kappa=gnir,"+newma);
       ideal @j= @kappa(@j);
-      @j=modStd_tasks(@j, 0);
+      @j=modStd_tasks(@j, exactness);
 
-      list pr=decomp_parallel(@j);
+      list pr=decomp_parallel(@j, exactness);
       setring gnir;
       list pr=imap(@deirf,pr);
       for(@k=1;@k<=size(pr);@k++)
@@ -410,7 +417,7 @@ EXAMPLE: example decomp_parallel; shows an example
   }
   else
   {
-    ideal jwork=modStd_tasks(imap(gnir,@j), 0);
+    ideal jwork=modStd_tasks(imap(gnir,@j), exactness);
   }
   list hquprimary;
   poly @p,@q;
@@ -452,7 +459,7 @@ EXAMPLE: example decomp_parallel; shows an example
       }
       else
       {
-        ideal @j=modStd_tasks(phi(@j), 0);
+        ideal @j=modStd_tasks(phi(@j), exactness);
       }
       ideal ser=phi(ser);
 
@@ -611,11 +618,11 @@ EXAMPLE: example decomp_parallel; shows an example
       setring @Phelp;
       @h=imap(gnir,@h);
       if(defined(@LL)){kill @LL;}
-      list @LL=minSat_parallel(jwork,@h);
+      list @LL=minSat_parallel(jwork,@h,exactness);
       @Ptest=intersect(@Ptest,@LL[1]);
       @q=@LL[2];
       jwork=jwork,@q;
-      jwork=modStd_tasks(jwork, 0);
+      jwork=modStd_tasks(jwork, exactness);
       keepdi=dim(jwork);
       if(keepdi<di)
       {
@@ -693,7 +700,7 @@ EXAMPLE: example decomp_parallel; shows an example
           }
           else
           {
-            ideal @j=modStd_tasks(phi(jkeep), 0);
+            ideal @j=modStd_tasks(phi(jkeep), exactness);
           }
           ideal ser=phi(ser);
           option(set,op);
@@ -835,7 +842,7 @@ EXAMPLE: example decomp_parallel; shows an example
       }
       if(size(reduce(ser,peek,1))!=0)
       {
-        htprimary=decomp_parallel(@j,peek,ser);
+        htprimary=decomp_parallel(@j,exactness,peek,ser);
         // here we collect now both results primary(sat(j,gh))
         // and primary(j,gh^n)
         @n=size(quprimary);
@@ -861,13 +868,13 @@ example
    poly  p = z2+1;
    poly  q = z4+2;
    ideal i = p^2*q^3,(y-z3)^3,(x-yz+z4)^4;
-   list pr= decomp_parallel(i);
+   list pr= decomp_parallel(i, 0);
    pr;
    testPrimary( pr, i);
 }
 
-proc primdecGTZ_parallel(ideal i, list #)
-"USAGE:   primdecGTZ_parallel(i); i ideal
+static proc primdecGTZ_wrapper(ideal i, int exactness, list #)
+"USAGE:   primdecGTZ_wrapper(i, exactness); i ideal, exactness int
 RETURN:  a list pr of primary ideals and their associated primes:
 @format
    pr[i][1]   the i-th primary component,
@@ -880,7 +887,10 @@ NOTE:    - Parallel version of the algorithm of Gianni/Trager/Zacharias.
          - For local and mixed orderings, the decomposition in the
            corresponding global ring is returned if the string 'global'
            is specified as second argument
-EXAMPLE: example primdecGTZ_parallel; shows an example
+         - Returns a primary decomposition of i for sure if exactness != 0, and
+           with high probability, otherwise.
+
+EXAMPLE: example primdecGTZ_wrapper; shows an example
 "
 {
    if(char(basering) != 0)
@@ -900,7 +910,7 @@ EXAMPLE: example primdecGTZ_parallel; shows an example
       setring s;
       ideal i=imap(r,i);
 // decompose and go back
-      list li=primdecGTZ_parallel(i);
+      list li=primdecGTZ_wrapper(i, exactness);
       setring r;
       def li=imap(s,li);
 // clean up
@@ -922,7 +932,7 @@ EXAMPLE: example primdecGTZ_parallel; shows an example
    {
       return(algeDeco(i,0));
    }
-  return(Primdec::convList(decomp_parallel(i)));
+  return(Primdec::convList(decomp_parallel(i, exactness)));
 }
 example
 { "EXAMPLE:";  echo = 2;
@@ -930,7 +940,7 @@ example
    poly  p = z2+1;
    poly  q = z3+2;
    ideal i = p*q^2,y-z2;
-   list pr = primdecGTZ_parallel(i);
+   list pr = primdecGTZ_wrapper(i, 0);
    pr;
 }
 
