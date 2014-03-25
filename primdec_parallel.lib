@@ -31,7 +31,7 @@ LIB "assprimeszerodim_tasks.lib";
 proc primdecGTZ_parallel(ideal i)
 {
   list L = primdecGTZ_wrapper(i, 0);
-  if(i!test_primdec(i, L))
+  if(!test_primdec(i, L))
   {
     L = primdecGTZ_wrapper(i, 1);
   }
@@ -48,14 +48,14 @@ static proc test_primdec(ideal i_test, list L_test)
   {
     arguments[i] = list(i);
   }
-  int okay = parallelTestAND("test_component", arguments);
+  int okay = parallelTestAND("Primdec_parallel::test_component", arguments);
   if(!okay)
   {
     kill i_test;
     kill L_test;
     return(0);
   }
-  okay = parallelTestAND("test_inclusion", arguments);
+  okay = parallelTestAND("Primdec_parallel::test_inclusion", arguments);
   if(!okay)
   {
     kill i_test;
@@ -93,7 +93,47 @@ static proc test_inclusion(int index)
 
 static proc test_intersection()
 {
-  return(1);
+  int i;
+  int size_L = size(L_test);
+
+  def br = basering;
+  list rl = ringlist(br);
+  for(i = size(rl[3]); i > 0; i--)
+  {
+    if(rl[3][i][1] == "c" || rl[3][i][1] == "C")
+    {
+      rl[3] = delete(rl[3], i);
+    }
+  }
+  rl[3] = insert(rl[3], list("c", 0));
+  def newR = ring(rl);
+  setring(newR);
+  option(noredThrough);   // these options are ring-dependent
+  option(noredTail);
+  ideal I = fetch(br, i_test);
+  list L = fetch(br, L_test);
+
+  module M = module(matrix(1:(size_L+1)));
+  for(i = 1; i <= size_L; i++)
+  {
+    M = M + module(L[i][1]*gen(i));
+  }
+  M = M + module(I*gen(size_L+1));
+
+  M = std(M);
+
+  ideal J;
+  for(i = ncols(M); i > 0; i--)
+  {
+    if(M[i][1..size_L] == 0)
+    {
+      J = M[i][size_L+1], J;
+    }
+  }
+  J = simplify(J, 2);
+  int res = !size(reduce(J, I));
+  setring(br);
+  return(res);
 }
 
 static proc minSat_parallel(ideal inew, ideal h, int exactness)
