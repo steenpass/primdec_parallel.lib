@@ -21,6 +21,8 @@ LIB "matrix.lib";
 LIB "triang.lib";
 LIB "ring.lib";
 LIB "primdec.lib";
+LIB "tasks.lib";
+LIB "parallel.lib";
 LIB "modstd_tasks.lib";
 LIB "modquotient.lib";
 LIB "assprimeszerodim_tasks.lib";
@@ -28,7 +30,70 @@ LIB "assprimeszerodim_tasks.lib";
 
 proc primdecGTZ_parallel(ideal i)
 {
-  return(primdecGTZ_wrapper(i, 0));
+  list L = primdecGTZ_wrapper(i, 0);
+  if(i!test_primdec(i, L))
+  {
+    L = primdecGTZ_wrapper(i, 1);
+  }
+  return(L);
+}
+
+static proc test_primdec(ideal i_test, list L_test)
+{
+  exportto(Primdec_parallel, i_test);
+  exportto(Primdec_parallel, L_test);
+  list arguments;
+  int i;
+  for(i = size(L_test); i > 0; i--)
+  {
+    arguments[i] = list(i);
+  }
+  int okay = parallelTestAND("test_component", arguments);
+  if(!okay)
+  {
+    kill i_test;
+    kill L_test;
+    return(0);
+  }
+  okay = parallelTestAND("test_inclusion", arguments);
+  if(!okay)
+  {
+    kill i_test;
+    kill L_test;
+    return(0);
+  }
+  okay = test_intersection();
+  kill i_test;
+  kill L_test;
+  return(okay);
+}
+
+static proc test_component(int index)
+{
+  list P = primdecGTZ(L_test[index][1]);
+  if(size(P) > 1)
+  {
+    return(0);
+  }
+  if(size(reduce(L_test[index][2], std(P[1][2]), 1)))
+  {
+    return(0);
+  }
+  if(size(reduce(P[1][2], std(L_test[index][2]), 1)))
+  {
+    return(0);
+  }
+  return(1);
+}
+
+static proc test_inclusion(int index)
+{
+  return(!size(reduce(i_test, std(L_test[index][1]), 1)));
+}
+
+static proc test_intersection()
+{
+  return(1);
 }
 
 static proc minSat_parallel(ideal inew, ideal h, int exactness)
