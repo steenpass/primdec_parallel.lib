@@ -110,8 +110,9 @@ static proc test_intersection()
   setring(newR);
   option(noredThrough);   // these options are ring-dependent
   option(noredTail);
-  ideal I = fetch(br, i_test);
   list L = fetch(br, L_test);
+  ideal I = fetch(br, i_test);
+  I = std(I);
 
   module M = module(matrix(1:(size_L+1)));
   for(i = 1; i <= size_L; i++)
