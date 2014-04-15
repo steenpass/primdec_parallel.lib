@@ -707,8 +707,11 @@ EXAMPLE: example decomp_parallel; shows an example
       task t(@n) = "Primdec_parallel::sat_component",
         list(quprimary[2*@n-1], quprimary[2*@n], lnew[2*@n-1], lnew[2*@n]);
     }
-    startTasks(t((@n3 div 2+1)..(@n2 div 2)));
-    waitAllTasks(t((@n3 div 2+1)..(@n2 div 2)));
+    if(@n2 > @n3)
+    {
+      startTasks(t((@n3 div 2+1)..(@n2 div 2)));
+      waitAllTasks(t((@n3 div 2+1)..(@n2 div 2)));
+    }
     for(@n = @n3 div 2+1; @n <= @n2 div 2; @n++)
     {
       quprimary[2*@n-1] = getResult(t(@n))[1];
@@ -925,8 +928,11 @@ EXAMPLE: example decomp_parallel; shows an example
           task t(@n) = "Primdec_parallel::sat_component",
             list(quprimary[2*@n-1], quprimary[2*@n], lnew[2*@n-1], lnew[2*@n]);
         }
-        startTasks(t((@n3 div 2+1)..(@n2 div 2)));
-        waitAllTasks(t((@n3 div 2+1)..(@n2 div 2)));
+        if(@n2 > @n3)
+        {
+          startTasks(t((@n3 div 2+1)..(@n2 div 2)));
+          waitAllTasks(t((@n3 div 2+1)..(@n2 div 2)));
+        }
         for(@n = @n3 div 2+1; @n <= @n2 div 2; @n++)
         {
           quprimary[2*@n-1] = getResult(t(@n))[1];
