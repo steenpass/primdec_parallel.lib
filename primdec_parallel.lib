@@ -23,7 +23,7 @@ LIB "ring.lib";
 LIB "primdec.lib";
 LIB "tasks.lib";
 LIB "parallel.lib";
-LIB "modstd_tasks.lib";
+LIB "modstd.lib";
 LIB "modquotient.lib";
 LIB "assprimeszerodim_tasks.lib";
 
@@ -272,7 +272,7 @@ EXAMPLE: example decomp_parallel; shows an example
   {
     if(attrib(i,"isSB")!=1)
     {
-      tras=modStd_tasks(i, exactness);
+      tras=modStd(i, exactness);
       ltras=tras,tras;
       attrib(ltras[1],"isSB",1);
     }
@@ -340,7 +340,7 @@ EXAMPLE: example decomp_parallel; shows an example
     }
     else
     {
-      ideal @j=modStd_tasks(fetch(@P,i), exactness);
+      ideal @j=modStd(fetch(@P,i), exactness);
     }
   }
   option(set,op);
@@ -406,7 +406,7 @@ EXAMPLE: example decomp_parallel; shows an example
       execute("ring @deirf=("+charstr(gnir)+"),("+newva+",lp;");
       execute("map @kappa=gnir,"+newma);
       ideal @j= @kappa(@j);
-      @j=modStd_tasks(@j, exactness);
+      @j=modStd(@j, exactness);
 
       list pr=decomp_parallel(@j, exactness);
       setring gnir;
@@ -523,7 +523,7 @@ EXAMPLE: example decomp_parallel; shows an example
   }
   else
   {
-    ideal jwork=modStd_tasks(imap(gnir,@j), exactness);
+    ideal jwork=modStd(imap(gnir,@j), exactness);
   }
   list hquprimary;
   poly @p,@q;
@@ -565,7 +565,7 @@ EXAMPLE: example decomp_parallel; shows an example
       }
       else
       {
-        ideal @j=modStd_tasks(phi(@j), exactness);
+        ideal @j=modStd(phi(@j), exactness);
       }
       ideal ser=phi(ser);
 
@@ -731,7 +731,7 @@ EXAMPLE: example decomp_parallel; shows an example
       @Ptest=intersect(@Ptest,@LL[1]);
       @q=@LL[2];
       jwork=jwork,@q;
-      jwork=modStd_tasks(jwork, exactness);
+      jwork=modStd(jwork, exactness);
       keepdi=dim(jwork);
       if(keepdi<di)
       {
@@ -809,7 +809,7 @@ EXAMPLE: example decomp_parallel; shows an example
           }
           else
           {
-            ideal @j=modStd_tasks(phi(jkeep), exactness);
+            ideal @j=modStd(phi(jkeep), exactness);
           }
           ideal ser=phi(ser);
           option(set,op);
