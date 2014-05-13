@@ -1125,7 +1125,7 @@ static proc zero_decomp_modular(ideal j, ideal ser, int exactness)
   {
     if(!attrib(assprimes[i], "isSB"))
     {
-      assprimes[i] = std(assprimes[i]);
+      assprimes[i] = modStd(assprimes[i], exactness);
     }
   }
   list separators;
