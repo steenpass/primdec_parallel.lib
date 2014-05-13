@@ -121,7 +121,7 @@ static proc test_intersection()
   }
   M = M + module(I*gen(size_L+1));
 
-  M = std(M);
+  M = modStd(M);
 
   ideal J;
   for(i = ncols(M); i > 0; i--)
