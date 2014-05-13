@@ -1101,7 +1101,7 @@ static proc zero_decomp_modular(ideal j, ideal ser, int exactness)
   list res;
   for(i = size_assprimes; i > 0; i--)
   {
-    task t(i) = "sat", list(j, separators[i]);
+    task t(i) = "Modquotient::modSat", list(j, separators[i], exactness);
   }
   startTasks(t(1..size_assprimes));
   waitAllTasks(t(1..size_assprimes));
