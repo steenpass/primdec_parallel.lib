@@ -167,7 +167,7 @@ static proc test_intersection()
     }
   }
   J = simplify(J, 2);
-  int res = !size(reduce(J, I));
+  int res = !size(reduce(J, I, 1));
   setring(br);
   return(res);
 }
