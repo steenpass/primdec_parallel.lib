@@ -28,16 +28,30 @@ LIB "modquotient.lib";
 LIB "assprimeszerodim_tasks.lib";
 
 
-proc primdecGTZ_parallel(ideal i)
+proc primdecGTZ_parallel(ideal i, list #)
 {
+  /* read optional parameter */
+  int mod_only = 0;
+  if(size(#) > 0)
+  {
+    if(size(#) > 1 || typeof(#[1]) != "int")
+    {
+      ERROR("wrong optional parameter");
+    }
+    mod_only = #[1];
+  }
+
+  /* compute a standard basis if necessary */
   if(!attrib(i, "isSB"))
   {
     i = modStd(i);
   }
-  list L = primdecGTZ_wrapper(i, 0);
+
+  /* call wrapper and test the result */
+  list L = primdecGTZ_wrapper(i, 0, mod_only);
   if(!test_primdec(i, L))
   {
-    L = primdecGTZ_wrapper(i, 1);
+    L = primdecGTZ_wrapper(i, 1, mod_only);
   }
   return(L);
 }
@@ -88,7 +102,7 @@ static proc test_component(int index)
   list L = parallelWaitFirst(list("primdecGTZ", "primdecSY",
       "Primdec_parallel::primdecGTZ_wrapper"),
       list(list(L_test[index][1]), list(L_test[index][1]),
-      list(L_test[index][1], 1)));
+      list(L_test[index][1], 1, 0)));
   int i;
   for(i = 1; i <= 3; i++)
   {
@@ -276,7 +290,7 @@ static proc quotMin_parallel(list tsil, int exactness)
   return(l);
 }
 
-static proc decomp_parallel(ideal i, int exactness, list #)
+static proc decomp_parallel(ideal i, int exactness, int mod_only, list #)
 "USAGE:  decomp_parallel(i, exactness); i ideal, exactness int
 RETURN:  list = list of primary ideals and their associated primes
          (at even positions in the list)
@@ -443,7 +457,7 @@ EXAMPLE: example decomp_parallel; shows an example
       ideal @j= @kappa(@j);
       @j=modStd(@j, exactness);
 
-      list pr=decomp_parallel(@j, exactness);
+      list pr=decomp_parallel(@j, exactness, mod_only);
       setring gnir;
       list pr=imap(@deirf,pr);
       for(@k=1;@k<=size(pr);@k++)
@@ -492,7 +506,7 @@ EXAMPLE: example decomp_parallel; shows an example
   {
     op=option(get);
     option(redSB);
-    list gprimary = zero_decomp_parallel(@j, ser, exactness);
+    list gprimary = zero_decomp_parallel(@j, ser, exactness, mod_only);
 
     setring @P;
     primary=fetch(gnir,gprimary);
@@ -678,7 +692,7 @@ EXAMPLE: example decomp_parallel; shows an example
       op=option(get);
       option(redSB);
 
-      list uprimary = zero_decomp_parallel(@j, ser, exactness);
+      list uprimary = zero_decomp_parallel(@j, ser, exactness, mod_only);
       option(set,op);
     }
     else
@@ -904,7 +918,7 @@ EXAMPLE: example decomp_parallel; shows an example
 
         op=option(get);
         option(redSB);
-        list uprimary = zero_decomp_parallel(@j, ser, exactness);
+        list uprimary = zero_decomp_parallel(@j, ser, exactness, mod_only);
         option(set,op);
 
         //we need the intersection of the ideals in the list quprimary with
@@ -989,7 +1003,7 @@ EXAMPLE: example decomp_parallel; shows an example
       }
       if(size(reduce(ser,peek,1))!=0)
       {
-        htprimary=decomp_parallel(@j,exactness,peek,ser);
+        htprimary=decomp_parallel(@j, exactness, mod_only, peek, ser);
         // here we collect now both results primary(sat(j,gh))
         // and primary(j,gh^n)
         @n=size(quprimary);
@@ -1009,18 +1023,8 @@ EXAMPLE: example decomp_parallel; shows an example
   primary=Primdec::cleanPrimary(primary);
   return(primary);
 }
-example
-{ "EXAMPLE:"; echo = 2;
-   ring  r = 32003,(x,y,z),lp;
-   poly  p = z2+1;
-   poly  q = z4+2;
-   ideal i = p^2*q^3,(y-z3)^3,(x-yz+z4)^4;
-   list pr= decomp_parallel(i, 0);
-   pr;
-   testPrimary( pr, i);
-}
 
-static proc primdecGTZ_wrapper(ideal i, int exactness, list #)
+static proc primdecGTZ_wrapper(ideal i, int exactness, int mod_only, list #)
 "USAGE:   primdecGTZ_wrapper(i, exactness); i ideal, exactness int
 RETURN:  a list pr of primary ideals and their associated primes:
 @format
@@ -1057,7 +1061,7 @@ EXAMPLE: example primdecGTZ_wrapper; shows an example
       setring s;
       ideal i=imap(r,i);
 // decompose and go back
-      list li=primdecGTZ_wrapper(i, exactness);
+      list li=primdecGTZ_wrapper(i, exactness, mod_only);
       setring r;
       def li=imap(s,li);
 // clean up
@@ -1079,36 +1083,39 @@ EXAMPLE: example primdecGTZ_wrapper; shows an example
    {
       return(algeDeco(i,0));
    }
-  return(Primdec::convList(decomp_parallel(i, exactness)));
-}
-example
-{ "EXAMPLE:";  echo = 2;
-   ring  r = 0,(x,y,z),lp;
-   poly  p = z2+1;
-   poly  q = z3+2;
-   ideal i = p*q^2,y-z2;
-   list pr = primdecGTZ_wrapper(i, 0);
-   pr;
+  return(Primdec::convList(decomp_parallel(i, exactness, mod_only)));
 }
 
-static proc zero_decomp_parallel(ideal j, ideal ser, int exactness)
+/* mod_only == 0: try both zero_decomp() and zero_decomp_modular() in parallel
+ *                (default).
+ * mod_only != 0: try only zero_decomp_modular().
+ */
+static proc zero_decomp_parallel(ideal j, ideal ser, int exactness,
+    int mod_only)
 {
-  task t_standard = "zero_decomp", list(j, ser, 0);
-  task t_modular = "Primdec_parallel::zero_decomp_modular",
-      list(j, ser, exactness);
-  startTasks(t_standard, t_modular);
-  list finished = waitTasks(list(t_standard, t_modular), 1);
   list result;
-  if(finished[1] == 1)
+  if(mod_only)
   {
-    result = getResult(t_standard);
+    result = zero_decomp_modular(j, ser, exactness);
   }
   else
   {
-    result = getResult(t_modular);
+    task t_standard = "zero_decomp", list(j, ser, 0);
+    task t_modular = "Primdec_parallel::zero_decomp_modular",
+         list(j, ser, exactness);
+    startTasks(t_standard, t_modular);
+    list finished = waitTasks(list(t_standard, t_modular), 1);
+    if(finished[1] == 1)
+    {
+      result = getResult(t_standard);
+    }
+    else
+    {
+      result = getResult(t_modular);
+    }
+    killTask(t_standard);
+    killTask(t_modular);
   }
-  killTask(t_standard);
-  killTask(t_modular);
   return(result);
 }
 
