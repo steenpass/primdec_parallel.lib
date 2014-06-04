@@ -372,7 +372,7 @@ EXAMPLE: example decomp_parallel; shows an example
   {
     if(!lp)
     {
-      ideal @j=std(fetch(@P,i),@hilb,@w);
+      ideal @j=modStdHilb(fetch(@P,i),@hilb,@w,exactness);
     }
     else
     {
@@ -567,7 +567,7 @@ EXAMPLE: example decomp_parallel; shows an example
     }
     else
     {
-      ideal jwork=std(imap(gnir,@j),@hilb,@w);
+      ideal jwork=modStdHilb(imap(gnir,@j),@hilb,@w,exactness);
     }
   }
   else
@@ -610,7 +610,7 @@ EXAMPLE: example decomp_parallel; shows an example
       option(redSB);
       if(homo==1)
       {
-        ideal @j=std(phi(@j),@hilb,@w);
+        ideal @j=modStdHilb(phi(@j),@hilb,@w,exactness);
       }
       else
       {
@@ -854,7 +854,7 @@ EXAMPLE: example decomp_parallel; shows an example
           option(redSB);
           if(homo==1)
           {
-            ideal @j=std(phi(jkeep),keephilb,@w);
+            ideal @j=modStdHilb(phi(jkeep),keephilb,@w,exactness);
           }
           else
           {
@@ -1204,4 +1204,27 @@ static proc sat_component(ideal q1, ideal q2, ideal l1, ideal l2)
     q2 = Primdec::sat2(q2, l2)[1];
   }
   return(list(q1, q2));
+}
+
+static proc modStdHilb(ideal I, intvec h, intvec w, int exactness)
+{
+  /* save options */
+  intvec opt = option(get);
+  option(redSB);
+
+  /* call modular() */
+  if (exactness) {
+    I = modular("std", list(I, h, w), Modstd::primeTest_std,
+        Modstd::deleteUnluckyPrimes_std, Modstd::pTest_std,
+        Modstd::finalTest_std);
+  }
+  else {
+    I = modular("std", list(I, h, w), Modstd::primeTest_std,
+        Modstd::deleteUnluckyPrimes_std, Modstd::pTest_std);
+  }
+
+  /* return the result */
+  attrib(I, "isSB", 1);
+  option(set, opt);
+  return(I);
 }
