@@ -523,7 +523,7 @@ EXAMPLE: example decomp_parallel; shows an example
   }
 
   poly @gs,@gh,@p;
-  string @va,quotring;
+  string @va;
   list quprimary,htprimary,collectprimary,lsau,lnew,allindep,restindep;
   ideal @h;
   int jdim=dim(@j);
@@ -649,14 +649,14 @@ EXAMPLE: example decomp_parallel; shows an example
     //map phi:K[var(1),...,var(nva)] --->K(var(nnpr+1),..,var(nva))[..rest..]
     //------------------------------------------------------------------------
 
-    quotring=Primdec::prepareQuotientring(nvars(basering)-indep[@m][3]);
+    def quotring=Primdec::prepareQuotientring(nvars(basering)-indep[@m][3],"lp");
 
     //---------------------------------------------------------------------
     //we pass to the quotientring   K(var(nnp+1),..,var(nva))[..the rest..]
     //---------------------------------------------------------------------
 
     ideal @jj=lead(@j);               //!! vorn vereinbaren
-    execute(quotring);
+    setring quotring;
 
     ideal @jj=imap(gnir1,@jj);
     @vv=Primdec::clearSBNeu(@jj,fett);  //!! vorn vereinbaren
@@ -670,7 +670,7 @@ EXAMPLE: example decomp_parallel; shows an example
       }
     }
     @j=simplify(@j,2);
-    setring quring;
+    setring quotring;
     // @j considered in the quotientring
     ideal @j=imap(gnir1,@j);
 
@@ -731,11 +731,11 @@ EXAMPLE: example decomp_parallel; shows an example
     //---------------------------------------------------------------------
     setring gnir;
 
-    collectprimary=imap(quring,uprimary);
-    lsau=imap(quring,saturn);
-    @h=imap(quring,@h);
+    collectprimary=imap(quotring,uprimary);
+    lsau=imap(quotring,saturn);
+    @h=imap(quotring,@h);
 
-    kill quring;
+    kill quotring;
 
     @n2=size(quprimary);
     @n3=@n2;
@@ -891,13 +891,15 @@ EXAMPLE: example decomp_parallel; shows an example
         //--->K(var(nnpr+1),..,var(nva))[..the rest..]
         //------------------------------------------------------------------
 
-        quotring=Primdec::prepareQuotientring(nvars(basering)-restindep[@m][3]);
+        def quotring=
+            Primdec::prepareQuotientring(nvars(basering)-restindep[@m][3],
+            "lp");
 
         //------------------------------------------------------------------
         //we pass to the quotientring  K(var(nnp+1),..,var(nva))[..rest..]
         //------------------------------------------------------------------
 
-        execute(quotring);
+        setring quotring;
 
         // @j considered in the quotientring
         ideal @j=imap(gnir1,@j);
@@ -949,11 +951,11 @@ EXAMPLE: example decomp_parallel; shows an example
         //back to the polynomialring
         //------------------------------------------------------------------
         setring gnir;
-        collectprimary=imap(quring,uprimary);
-        lsau=imap(quring,saturn);
-        @h=imap(quring,@h);
+        collectprimary=imap(quotring,uprimary);
+        lsau=imap(quotring,saturn);
+        @h=imap(quotring,@h);
 
-        kill quring;
+        kill quotring;
 
         @n2=size(quprimary);
         @n3=@n2;
